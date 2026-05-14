@@ -26,19 +26,15 @@ To run the app with `uv`:
 (INNGEST_DEV=1 uv run uvicorn main:app --reload)
 ```
 
-## Implmentation Rationale
+## Implmentation Details
 
-### Libraries chosen
+The project uses `httpx` for making API calls, which uses an API compatible with `requests` but also support async calls.
 
-The project uses `httpx`, which uses an API compatible with `requests` but also support async calls.
+The project uses Resend SDK to send emails, as per the task description, and uses the Python SDK instead of the Resend API. Using SDK instead of API speed up the development and can help in case of changes in the API.
 
-The project uses Resend SDK, instead of making direct API calls. This should keep compatibility even the the API changes.
+There are two Inngest functions: `get_movie_summary` and `send_email_summary`.
 
-## Structure of function and steps
-
-The project uses two functions: `get_movie_summary` and `send_email_summary`.
-
-Each function has an unique step. `get_movie_summary` is triggered by an event called `meadow_api/movie_watched`, such as this example:
+Each function has an unique step. `get_movie_summary` is triggered by an event called `meadow_api/movie.watched`, such as this example:
 
 ```
 {
@@ -54,13 +50,15 @@ Once triggered, `get_movie_summary` will hit OMDb API and extract the summary fr
 
 The Inngest functions are triggered in many different ways, but in this project, `get_movie_summary` is triggered externally using the UI (can be also triggered by Python code), and the function `send_email_summary` is triggered by `get_movie_summary`.
 
-Once extracted, `send_email_summary` is called, chaining the first call with the second call. This pattern follows a pattern similar to Celery chains explained here [here](https://docs.celeryq.dev/en/stable/userguide/canvas.html#chains).
+Once the summary is extracted, `send_email_summary` is called, chaining the first call with the second call. This pattern follows a pattern similar to Celery chains explained here [here](https://docs.celeryq.dev/en/stable/userguide/canvas.html#chains).
 
-Just keep in mind the Inngest functions are just regular decorated functions in code, can be async, but the concept is different.
+Just keep in mind that Inngest functions are just regular decorated functions in code, can be async, but the concept is different is different than regular functions.
+
+The regular functions being called are nested inside the Inngest functions. This helps keeping the code tight since it's small.
 
 ## Error handling
 
-Inngest provide retries by default, configurable by functions and steps. The approach for error handling is using `response.raise_for_status()` and letting the function be retried by Inngest.
+Inngest provide retries by default, configurable by functions and steps. The approach for error handling is using `response.raise_for_status()` and letting the function be retried by Inngest. The number of retries and debouncing is the default set by Inngest.
 
 Resend Python SDK does not go deep into details on how to handle errors, but in case this becomes critical, probably would go down the route of using the Resend API to handle specific errors.
 
@@ -68,7 +66,7 @@ Resend Python SDK does not go deep into details on how to handle errors, but in 
 
 In retrospect, I would probably refactor to unify `get_movie_summary` and `send_email_summary` as a single function, calling both the OMDb API and sending the email as different steps.
 
-The reason for this is because, once I cancel a function, the other run won't hang doing attempts until it times out.
+The reason for this is because, once I cancel a function, the chained function won't hang doing attempts until it times out.
 
 Doing a parallel with Temporal, it's like keeping a single Workflow to do both things, since they are part of the same "feature".
 
