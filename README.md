@@ -96,6 +96,8 @@ However, the regular functions, which are nested/embedded into inngest functions
 
 Inngest is very brief on testing documentation, and tests are **not included**, but would make sure tests are included too.
 
+**POST reflection on testing and code structure**: moving the nested functions outside inngest functions would also help on mocking for testing. `inngest.experimental.mocked`, as the name of the module indicates, is still [experimental](https://www.inngest.com/docs/reference/python/guides/testing). This aligns with the discussion at the interview where it was mentioned Python is not a first class citizen for Inngest.
+
 ## Screnshots from UI
 
 Inngest Functions:
