@@ -62,7 +62,7 @@ Inngest provide retries by default, configurable by functions and steps. The app
 
 Resend Python SDK does not go deep into details on how to handle errors, but in case this becomes critical, probably would go down the route of using the Resend API to handle specific errors.
 
-## What I would do differently
+## Changes I would make if starting over
 
 In retrospect, I would probably refactor to unify `get_movie_summary` and `send_email_summary` as a single function, calling both the OMDb API and sending the email as different steps.
 
@@ -71,6 +71,18 @@ The reason for this is because, once I cancel a function, the chained function w
 Doing a parallel with Temporal, it's like keeping a single Workflow to do both things, since they are part of the same "feature".
 
 Temporal has the concept of Child Workflows that can span from the Parent Workflow. This has the advantage that, if the Parent Workflow is cancelled, the Child Workflows are cancelled too. This doesn't happen if a regular Workflow starts another regular Workflow.
+
+Hardcoded email (or any other data) should not be in the code too.
+
+## Other changes I would make when moving to production
+
+I would also remove checking for the API keys in each function and would make sure all the needed keys are checked when the app is initializing. As stated in the code too, I would make sure the keys are not stored in a plain-text `.venv` file but on a proper encrypted vault or secret management library like Bitwarden.
+
+Other changes would include keeping a proper file and dir structure and not everything on the main file of the project.
+
+I would also probably use Pydantic for input event clean up. Fail earlier instead of checking how the event is structured every time part of the event data is used. This is an idea when I had developing, but later checking the documentation, there is in fact a guide for doing exactly this. :)
+
+Inngest is very brief on testing information, but would make sure at tests are included too.
 
 ## Screnshots from UI
 
