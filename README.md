@@ -76,4 +76,4 @@ Temporal has the concept of Child Workflows that can span from the Parent Workfl
 
 ## Screnshots from UI
 
-![Functions](screenshots/screenshot-functions)
+![Functions](screenshots/screenshot-functions.png)
