@@ -21,9 +21,10 @@ inngest_client = inngest.Inngest(
 
 
 @inngest_client.create_function(
-    fn_id="get_movie", trigger=inngest.TriggerEvent(event="meadow_api/movie.watched")
+    fn_id="get_movie_summary",
+    trigger=inngest.TriggerEvent(event="meadow_api/movie.watched"),
 )
-async def get_movie(ctx: inngest.Context):
+async def get_movie_summary(ctx: inngest.Context):
     async def _get_movie(title: str) -> str:
         # get the API keys from an .env file
         # in a proper CI/CD setup, this should be stored in an encrypted vault
@@ -56,16 +57,17 @@ async def get_movie(ctx: inngest.Context):
 
     await ctx.step.invoke(
         "call_send_email",
-        function=send_email,
+        function=send_email_summary,
         data={"movie_plot_summary": summary},
     )
 
 
 @inngest_client.create_function(
-    fn_id="send_email", trigger=inngest.TriggerEvent(event="app/send_email")
+    fn_id="send_email_summary",
+    trigger=inngest.TriggerEvent(event="app/send_email_summary"),
 )
-async def send_email(ctx: inngest.Context):
-    async def _send_email(summary: str):
+async def send_email_summary(ctx: inngest.Context):
+    async def _send_email_summary(summary: str):
         try:
             resend.api_key = os.environ["RESEND_API_KEY"]
         except KeyError:
@@ -82,13 +84,11 @@ async def send_email(ctx: inngest.Context):
         r = await resend.Emails.send_async(params)
 
     summary = ctx.event.data["movie_plot_summary"]
-    await ctx.step.run("send_email_step", _send_email, summary)
+    await ctx.step.run("send_email_step", _send_email_summary, summary)
 
 
 dotenv.load_dotenv()
 
 app = FastAPI()
 
-inngest.fast_api.serve(app, inngest_client, [get_movie, send_email])
-
-inngest_client.send(inngest.Event(name="app/get_movie", data={}))
+inngest.fast_api.serve(app, inngest_client, [get_movie_summary, send_email_summary])
