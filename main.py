@@ -51,7 +51,8 @@ async def get_movie_summary(ctx: inngest.Context):
         response.raise_for_status()
 
         # Deserialize the JSON from the response, then treats the result like
-        # a proper data structure to look for the property in the JSON.
+        # a proper data structure to look for the property in the deserialized
+        # JSON.
         response_text = json.loads(response.text)
 
         ctx.logger.info(response_text)
