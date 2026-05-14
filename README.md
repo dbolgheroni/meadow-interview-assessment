@@ -100,3 +100,6 @@ Completed:
 
 Email received:
 ![Email received](screenshots/screenshot-email.png)
+
+Failed function. Note the function is not retried. Also note the chained function to send email won't run:
+![Non-existent movie](screenshots/screenshot-non-existent-movie.png)
