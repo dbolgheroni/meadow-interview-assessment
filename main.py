@@ -89,8 +89,7 @@ async def send_email_summary(ctx: inngest.Context):
         try:
             resend.api_key = os.environ["RESEND_API_KEY"]
         except KeyError:
-            ctx.logger.info("no RESEND_API_KEY on .env")
-            raise
+            raise inngest.NonRetriableError("No OMDB_API_KEY found on .env")
 
         params: resend.Emails.SendParams = {
             "from": "Meadow Interview Assessment <meadow@resend.dev>",
