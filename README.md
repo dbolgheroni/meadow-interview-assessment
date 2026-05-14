@@ -76,4 +76,17 @@ Temporal has the concept of Child Workflows that can span from the Parent Workfl
 
 ## Screnshots from UI
 
+Inngest Functions:
 ![Functions](screenshots/screenshot-functions.png)
+
+Apps:
+![Apps](screenshots/screenshot-apps.png)
+
+Sending event:
+![Sending event](screenshots/screenshot-send-event.png)
+
+Completed:
+![Completed](screenshots/screenshot-completed.png)
+
+Email received:
+![Email received](screenshots/screenshot-email.png)
