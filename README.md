@@ -78,11 +78,23 @@ Hardcoded email (or any other data) should not be in the code too.
 
 I would also remove checking for the API keys in each function and would make sure all the needed keys are checked when the app is initializing. As stated in the code too, I would make sure the keys are not stored in a plain-text `.venv` file but on a proper encrypted vault or secret management library like Bitwarden.
 
-Other changes would include keeping a proper file and dir structure and not everything on the main file of the project.
+I would also probably use **Pydantic** for input event clean up. Fail earlier instead of checking how the event is structured every time part of the event data is used (in case the event is big instead of a single property like `movie_title`). This is an idea I had when developing, but when I later continued reading the documentation, there is in fact a guide for doing exactly this.
 
-I would also probably use Pydantic for input event clean up. Fail earlier instead of checking how the event is structured every time part of the event data is used. This is an idea when I had developing, but later checking the documentation, there is in fact a guide for doing exactly this. :)
+Other changes would include keeping a proper file and dir structure and not everything on the main file of the project. This would include separating the email part on a proper module, and the OMDb part on another one.
+```
+/src
+  services/
+    omdb.py
+    resend.py
+  client.py
+  ...
+```
 
-Inngest is very brief on testing information, but would make sure at tests are included too.
+The reason is simple: it would make easier to "compose" other features with existing Inngest functions. It would conflict with the idea mentioned earlier about having a single function with multiple steps.
+
+However, the regular functions, which are nested/embedded into inngest functions, could be separated and composed either as an inngest function with multiple steps or as multiple functions with a single step on each, the same way it's in the codebase as of now. It's a matter of understanding, if some guidelines are available, if one approach should be used instead of another.
+
+Inngest is very brief on testing documentation, and tests are **not included**, but would make sure tests are included too.
 
 ## Screnshots from UI
 
