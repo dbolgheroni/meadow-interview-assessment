@@ -1,0 +1,7 @@
+{
+  "name": "meadow_api/movie.watched",
+  "data": {
+    "movie_title": "The Matrix",
+    "recipient_email": "dbolgheroni0@proton.me"
+  }
+}
