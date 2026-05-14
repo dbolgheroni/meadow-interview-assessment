@@ -8,9 +8,7 @@ import inngest
 import inngest.fast_api
 
 import dotenv
-
 import httpx
-
 import resend
 
 
@@ -26,13 +24,11 @@ inngest_client = inngest.Inngest(
 )
 async def get_movie_summary(ctx: inngest.Context):
     async def _get_movie(title: str) -> str:
-        # get the API keys from an .env file
-        # in a proper CI/CD setup, this should be stored in an encrypted vault
+        # In a proper CI/CD setup, this should be stored in an encrypted vault.
         try:
             api_key = os.environ["OMDB_API_KEY"]
         except KeyError:
-            ctx.logger.info("no OMDB_API_KEY on .env")
-            raise
+            raise inngest.NonRetriableError("No OMDB_API_KEY found on .env")
 
         omdb_api_url = f"http://www.omdbapi.com/"
 
@@ -41,17 +37,38 @@ async def get_movie_summary(ctx: inngest.Context):
                 omdb_api_url, params={"apikey": api_key, "t": title}
             )
 
+        # Most errors from OMDb API are reasonable to retry, like network
+        # errors in general (connection, proxy, timeout errors) but not all
+        # errors should be retried. For instance, if a movie does not exist,
+        # retrying it would not make sense.
+        #
+        # However, not every API works the same. Some can return a 404 when
+        # something is not found. Others return 200, and notify this in the
+        # response.
+        #
+        # In the case for OMDb API, if the movie does not exist, it still
+        # returns 200, but with a 'Response' property set as 'False'.
         response.raise_for_status()
 
-        # deserialize the JSON from the response
-        # then treats the result like a proper data structure
+        # Deserialize the JSON from the response, then treats the result like
+        # a proper data structure to look for the property in the JSON.
         response_text = json.loads(response.text)
+
+        ctx.logger.info(response_text)
+
+        # Fail the function right away if the movie does not exist.
+        if response_text["Response"] == "False":
+            raise inngest.NonRetriableError("Movie not found")
+
         summary = response_text["Plot"]
 
         return summary
 
     # extract data from the event
-    movie_title = ctx.event.data["movie_title"]
+    try:
+        movie_title = ctx.event.data["movie_title"]
+    except KeyError:
+        raise inngest.NonRetriableError("No 'movie_title' in the input event")
 
     summary = await ctx.step.run("get_movie_step", _get_movie, movie_title)
 
